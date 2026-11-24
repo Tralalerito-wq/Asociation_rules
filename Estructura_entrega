@@ -1,0 +1,25 @@
+import os
+import pickle
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+
+# Crear directorios si no existen
+os.makedirs('src', exist_ok=True)
+os.makedirs('models', exist_ok=True)
+os.makedirs('tests', exist_ok=True)
+
+# Crear un dataset sintético rápido para simular nuestro modelo entrenado
+# Supongamos que predecimos la clase de cliente (0: Casual, 1: Recurrente)
+# Características: [promedio_compra, visitas_al_mes, edad]
+X = [[10.5, 2, 25], [50.0, 12, 34], [15.0, 1, 19], [80.5, 15, 45]]
+y = [0, 1, 0, 1]
+
+model = RandomForestClassifier(random_state=42)
+model.fit(X, y)
+
+# Guardar el modelo en la ruta establecida
+with open('models/model.pkl', 'wb') as f:
+    pickle.dump(model, f)
+
+print("Estructura creada y modelo simulado guardado en 'models/model.pkl'")
+
