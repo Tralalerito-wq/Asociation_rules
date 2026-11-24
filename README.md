@@ -1,6 +1,6 @@
 # Project_Reglas de Asociación
 Reglas de Asociación en compra de productos
-## 1. 👷 Data Engineer (src/data_loader.py): Ángel Emiliano López Orozco
+## 1. 👷 Data Engineer (src/data_loader.py): Yahel Damien Villalobos Acosta
 Transformar datos brutos y sucios en datos limpios listos para entrenar.
 
 ### Tareas:
@@ -14,7 +14,7 @@ División: Separar en Train/Test usando test_size y random_state definidos en co
 
 Entregable: Función load_and_preprocess_data(config) que retorna X_train, X_test, y_train, y_test.
 
-## 2. 🧠 ML Engineer (src/model_trainer.py): Andre de Jesus Ramirez Serrano
+## 2. 🧠 ML Engineer (src/model_trainer.py): Ángel Emiliano López Orozco
 Tu misión: Experimentar con algoritmos y guardar el mejor modelo.
 
 ### Tareas:
@@ -27,7 +27,7 @@ Calcular métricas clave: Accuracy, Recall (crítico para Churn) y F1-Score.
 Guardar el modelo entrenado en la carpeta models/ usando joblib.
 
 Entregable: Función train_and_save_model(X_train, y_train, X_test, y_test, config) que guarda el .pkl y retorna un diccionario de métricas.
-## 3. ⚙️ MLOps Engineer (src/main.py y config/): Yahel Damien Villalobos Acosta
+## 3. ⚙️ MLOps Engineer (src/main.py y config/): Andre de Jesus Ramirez Serrano
 Tu misión: Orquestar el flujo y gestionar la configuración externa.
 
 ### Tareas:
