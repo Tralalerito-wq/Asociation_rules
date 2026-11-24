@@ -1,4 +1,4 @@
-# Project_detect_covid19
+# Project_Reglas de Asociación
 Reglas de Asociación en compra de productos
 ## 1. 👷 Data Engineer (src/data_loader.py): Ángel Emiliano López Orozco
 Transformar datos brutos y sucios en datos limpios listos para entrenar.
