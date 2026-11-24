@@ -1,5 +1,5 @@
 # Project_detect_covid19
-Detección de covid 19 mediante redes neuronales convolucionales, usando imagénes
+Reglas de Asociación en compra de productos
 ## 1. 👷 Data Engineer (src/data_loader.py): Ángel Emiliano López Orozco
 Transformar datos brutos y sucios en datos limpios listos para entrenar.
 
