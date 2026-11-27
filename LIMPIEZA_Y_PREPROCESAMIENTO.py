@@ -44,8 +44,14 @@ def limpiar_datos(df: pd.DataFrame) -> pd.DataFrame:
 
 def agrupar_transacciones(df: pd.DataFrame) -> list[list[str]]:
     # Usar set() o drop_duplicates evita artículos repetidos en un mismo ticket si no te interesa la cantidad
-    transactions = df.groupby('Transactions')['Item'].apply(list).tolist()
+    transactions = df.groupby('Transaction')['Item'].apply(list).tolist()
     
     print(f"Total de transacciones agrupadas: {len(transactions)}")
     print("Ejemplos:", transactions[:5])
     return transactions
+
+def ejecutar_preprocesamiento(filepath: str):
+    df_raw = cargar_datos(filepath)
+    df_cleaned = limpiar_datos(df_raw)
+    return agrupar_transacciones(df_cleaned)
+    
