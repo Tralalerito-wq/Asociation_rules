@@ -1,57 +1,90 @@
-# Project_detect_covid19
-Detección de covid 19 mediante redes neuronales convolucionales, usando imagénes
-## 1. 👷 Data Engineer (src/data_loader.py): Ángel Emiliano López Orozco
-Transformar datos brutos y sucios en datos limpios listos para entrenar.
+# Reglas de asociación: Apriori y Eclat (Bread Basket)
 
-### Tareas:
-Cargar el CSV desde data/raw/.
+Análisis de canasta de mercado con el dataset `bread_basket.csv` (compras de una panadería).
+Se implementan dos algoritmos, **Apriori** y **Eclat**, para encontrar productos que se compran juntos,
+y un pipeline organizado por roles (Data, ML, MLOps y QA).
 
-Limpieza: La columna TotalCharges tiene espacios vacíos " " en lugar de nulos. Debes convertirla a numérico y manejar los NaN resultantes (ej. llenar con mediana o 0).
+## Estructura
 
-Preprocesamiento: Eliminar customerID. Codificar variables binarias (gender, Partner, Churn) de Texto a 0/1.
+```
+Asociation_rules/
+├── config/params.yaml        # parámetros de datos, modelo y rutas de salida
+├── data/raw/bread_basket.csv # dataset original
+├── src/
+│   ├── data_loader.py        # 1. Data Engineer
+│   ├── model_trainer.py      # 2. ML Engineer
+│   ├── main.py               # 3. MLOps Engineer
+│   └── predict.py            # 4. QA & Production Engineer
+├── tests/test_pipeline.py    # tests unitarios
+├── models/                   # modelo entrenado (model.pkl)
+├── reports/                  # reglas (CSV) y métricas (JSON)
+└── requirements.txt
+```
 
-División: Separar en Train/Test usando test_size y random_state definidos en config/params.yaml.
+## Cómo correrlo en Visual Studio Code
 
-Entregable: Función load_and_preprocess_data(config) que retorna X_train, X_test, y_train, y_test.
+1. Abre la carpeta `Asociation_rules` (File > Open Folder).
+2. Abre la terminal integrada (Ctrl + ñ) y crea el entorno virtual:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate          # Windows
+   source .venv/bin/activate       # Linux / macOS
+   pip install -r requirements.txt
+   ```
+3. Selecciona el intérprete `.venv` (Ctrl + Shift + P > *Python: Select Interpreter*).
+4. Ejecuta **siempre desde la raíz del proyecto**:
+   ```bash
+   python -m src.main                  # entrena el modelo definido en config/params.yaml
+   python -m src.main --model eclat    # fuerza un algoritmo
+   python -m src.main --comparar       # entrena Apriori y Eclat y los compara
+   python -m src.predict --items coffee "hot chocolate"
+   python -m pytest                    # o: python -m unittest discover -s tests -t .
+   ```
 
-## 2. 🧠 ML Engineer (src/model_trainer.py): Andre de Jesus Ramirez Serrano
-Tu misión: Experimentar con algoritmos y guardar el mejor modelo.
+---
 
-### Tareas:
-Implementar una "Fábrica de Modelos" que permita elegir entre al menos dos algoritmos (ej. RandomForest y SVM o LogisticRegression) según el config.
+## 1. 👷 Data Engineer (`src/data_loader.py`): Yahel Damien Villalobos Acosta
+Transforma los datos brutos en transacciones listas para minar reglas.
 
-Entrenar el modelo con los datos recibidos.
+- Carga el CSV desde `data/raw/` (con error claro si no existe).
+- Limpieza: elimina nulos, normaliza el texto de `Item` (minúsculas y sin espacios sobrantes,
+  p. ej. `'Coffee granules '`), excluye ítems que no son productos (`adjustment`) y elimina
+  productos repetidos dentro del mismo ticket.
+- Agrupa por `Transaction`: cada ticket es una lista de productos.
+- División Train/Test con `test_size` y `random_state` definidos en `config/params.yaml`.
+- **Entregable:** `load_and_preprocess_data(config)` → `train_transactions, test_transactions`.
 
-Calcular métricas clave: Accuracy, Recall (crítico para Churn) y F1-Score.
+## 2. 🧠 ML Engineer (`src/model_trainer.py`): Ángel Emiliano López Orozco
+Experimenta con los algoritmos y guarda el modelo.
 
-Guardar el modelo entrenado en la carpeta models/ usando joblib.
+- **Fábrica de modelos** (`MODEL_FACTORY`): elige `apriori` o `eclat` según `model.model_name` del config.
+  - *Apriori*: búsqueda por niveles, genera candidatos y poda con la propiedad anti-monótona.
+  - *Eclat*: formato vertical (producto → ids de ticket) e intersecciones en profundidad.
+- Genera las reglas `A -> B` con soporte, confianza y lift.
+- **Métricas** (en asociación no hay accuracy/recall/F1, así que se usan las equivalentes):
+  número de itemsets y reglas, tiempo, soporte/confianza/lift promedio, lift máximo y
+  validación en test (`test_confianza_prom`, `pct_reglas_validadas_test`, `pct_itemsets_validados_test`).
+- Guarda el modelo en `models/model.pkl` con `joblib`, las reglas en `reports/` (CSV) y las métricas (JSON).
+- **Entregable:** `train_and_save_model(train_transactions, test_transactions, config)` → dict de métricas.
 
-Entregable: Función train_and_save_model(X_train, y_train, X_test, y_test, config) que guarda el .pkl y retorna un diccionario de métricas.
-## 3. ⚙️ MLOps Engineer (src/main.py y config/): Yahel Damien Villalobos Acosta
-Tu misión: Orquestar el flujo y gestionar la configuración externa.
+## 3. ⚙️ MLOps Engineer (`src/main.py` y `config/`): Andre de Jesus Ramirez Serrano
+Orquesta el flujo y gestiona la configuración externa.
 
-### Tareas:
-Crear y mantener config/params.yaml. Debe incluir:
+- `config/params.yaml` incluye parámetros de datos (`test_size`, `random_state`), del modelo
+  (`model_name`, `min_support`, `min_confidence`, `min_lift`, `max_len`) y rutas de salida.
+- `src/main.py` lee el YAML y ejecuta datos → entrenamiento → métricas.
+- Corre con `python -m src.main`.
 
-Parámetros de datos (test_size, random_state).
+## 4. 🛡️ QA & Production Engineer (`src/predict.py` y `tests/`): Kevin Javier Pérez Meza
+Valida el sistema y prepara la inferencia.
 
-Parámetros del modelo (model_name, n_estimators, C, kernel, etc.).
+- `src/predict.py` carga `models/model.pkl` y, dado un carrito de compra, recomienda productos
+  según las reglas aprendidas. Si el modelo no existe, muestra un mensaje claro indicando cómo entrenarlo.
+- `tests/test_pipeline.py`: 9 tests (carga de datos no vacía, limpieza, split, Apriori y Eclat dan los
+  mismos itemsets, regla con valores conocidos, guardado del modelo, mensaje de error sin modelo, etc.).
 
-Rutas de salida.
+## Notas sobre los resultados
 
-Escribir src/main.py: Este script debe importar las funciones del Data Engineer y del ML Engineer y ejecutarlas en orden.
-
-Asegurar que el proyecto corra con el comando: python -m src.main.
-
-Entregable: Un main.py funcional que lea el YAML y ejecute el pipeline completo sin errores de importación.
-## 4. 🛡️ QA & Production Engineer (src/predict.py y tests/): Kevin Javier Pérez Meza
-Tu misión: Validar que el sistema funcione y preparar la inferencia para nuevos datos.
-
-### Tareas:
-Crear src/predict.py: Un script que cargue el modelo guardado (models/model.pkl) y permita predecir la clase de un nuevo cliente (ej. pasando una lista de características manualmente).
-
-Manejo de Errores: Si el modelo no existe, el script debe dar un mensaje claro, no un error críptico.
-
-Escribir tests básicos en tests/test_pipeline.py (ej. verificar que load_data no retorne DataFrames vacíos).
-
-Entregable: Un script de predicción robusto y al menos 2 tests unitarios pasando.
+- Con `min_support: 0.01` salen pocas reglas (16). Para explorar más, baja el valor en
+  `config/params.yaml` (con `0.005` salen ~29 y con `0.003` ~49).
+- Apriori y Eclat encuentran **los mismos itemsets y reglas**; la diferencia está en el tiempo de ejecución.
