@@ -1,0 +1,21 @@
+# ===== Configuración del pipeline de reglas de asociación =====
+
+data:
+  raw_path: data/raw/bread_basket.csv
+  test_size: 0.2          # proporción de transacciones reservadas para validar
+  random_state: 42
+  items_a_excluir:        # "productos" que en realidad no son compras reales
+    - adjustment
+    - none
+
+model:
+  model_name: apriori     # apriori | eclat
+  min_support: 0.01       # soporte mínimo (fracción de transacciones)
+  min_confidence: 0.2     # confianza mínima de las reglas
+  min_lift: 1.0           # lift mínimo de las reglas
+  max_len: 3              # tamaño máximo de los itemsets
+
+paths:
+  model_path: models/model.pkl
+  rules_csv: reports/reglas_{model_name}.csv
+  metrics_json: reports/metricas_{model_name}.json
